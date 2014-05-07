@@ -1,0 +1,52 @@
+CPPINC=/usr/vacpp/include
+
+BASEDIR=/home/smps
+CFLAGS= -g -I$(BASEDIR)/inc -I$(BASEDIR)/app/inc -I$(BASEDIR)/entity/inc \
+	     -I$(BASEDIR)/smpmsg/inc -I$(BASEDIR)/util/inc
+
+
+INC=-I. -I$(CPPINC) \
+	-I/usr/include \
+	-I$(HOME)/api/inc \
+	-I$(HOME)
+
+
+MQLIB= -L/usr/lib -lmqm
+SYSLIB= $(MQLIB) -lpthread -brtl
+
+UTIL_LIB= $(HOME)/lib
+USERLIB= $(HOME)/lib/api.a
+
+#CC=/usr/vacpp/bin/xlC $(INC) $(CFLAGS)  -qrtti=all -c -o
+#CCR=/usr/vacpp/bin/xlC -D_DEBUG -D_AIX   -qrtti=all  -o 
+
+CC = g++
+CCRR = g++ -D_DEBUG -o
+
+.SUFFIXES: .cpp .c .h .o
+
+.cpp.o:
+	$(CC) $@ $<
+
+.c.o:
+	$(CC) $@ $<
+
+.C.o:
+	$(CC) $@ $<
+
+all: api.a
+
+api.a:	cstring.o cfile.o api.o mq.o mqagent.o MySemaphore.o PoolAccess.o sysrefdata.o
+	ar -X32 rv $(UTIL_LIB)/api.a cstring.o cfile.o api.o mq.o mqagent.o  MySemaphore.o PoolAccess.o sysrefdata.o
+
+apisend: apisend.o
+	${CCR} apisend apisend.o $(UTIL_LIB)/api.a  $(SYSLIB)
+
+#tt: test009.o 
+#	$(CCR) t test009.o $(UTIL_LIB)/api.a $(UTIL_LIB)/smpmsg.a $(BASEDIR)/lib/smputil.a $(BASEDIR)/lib/entity.a $(SYSLIB) $(INC) $(CFLAGS)
+
+apirecv: apirecv.o
+	${CCR} apirecv apirecv.o $(UTIL_LIB)/api.a  $(SYSLIB) 
+
+clean:
+	-rm *.o
